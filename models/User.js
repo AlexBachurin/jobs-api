@@ -27,6 +27,7 @@ const UserSchema = new mongoose.Schema({
 });
 
 // hash the password with mongoose middleware
+// use function keyword to have this keyword properly pointing on object
 UserSchema.pre("save", async function () {
   //generate random bytes for hashing
   const salt = await bcrypt.genSalt(10);
