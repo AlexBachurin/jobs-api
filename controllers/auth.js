@@ -2,7 +2,9 @@ const UserModel = require("../models/User");
 const { StatusCodes } = require("http-status-codes");
 const jwt = require("jsonwebtoken");
 const { BadRequestError, UnauthenticatedError } = require("../errors");
+const bcrypt = require("bcryptjs");
 
+// REGISTER
 const register = async (req, res) => {
   // create user in db with model
   const user = await UserModel.create({ ...req.body });
@@ -18,6 +20,7 @@ const register = async (req, res) => {
   res.status(StatusCodes.CREATED).json({ user: { name: user.name }, token });
 };
 
+// LOGIN
 const login = async (req, res) => {
   const { email, password } = req.body;
   // check for email and password to not be empty
@@ -26,9 +29,15 @@ const login = async (req, res) => {
   }
   // find user
   const user = await UserModel.findOne({ email });
-  // if user exists send back user, if not throw error
+  // if user doesnt exists throw error
   if (!user) {
-    throw new UnauthenticatedError("Invalid credentials");
+    throw new UnauthenticatedError("User doesnt exist");
+  }
+  // compare password
+  const isPasswordMatch = await bcrypt.compare(password, user.password);
+  // if password matches create token and send back response, if not throw error
+  if (!isPasswordMatch) {
+    throw new UnauthenticatedError("Password doesnt match");
   }
   // create token
   const token = jwt.sign(
