@@ -17,7 +17,7 @@ const getJob = async (req, res) => {
   const { userId } = req.user;
   // find job by provided id and if its created by user which is currently logged in return job
   const job = await JobModel.findOne({ _id: jobId, createdBy: userId });
-  // if not found throw error
+  // if job not found throw error
   if (!job) {
     throw new NotFoundError(`Cannot find job with id of ${jobId}`);
   }
@@ -33,7 +33,25 @@ const createJob = async (req, res) => {
 };
 // Edit Job
 const updateJob = async (req, res) => {
-  res.send("update job");
+  const { userId } = req.user;
+  const { id: jobId } = req.params;
+  // get info from body
+  const { company, position } = req.body;
+  // check if fields is empty
+  if (company === "" || position === "") {
+    throw new BadRequestError("fields cannot be empty");
+  }
+  // find job and update with info from body
+  const job = await JobModel.findOneAndUpdate(
+    { _id: jobId, createdBy: userId },
+    req.body,
+    { new: true, runValidators: true }
+  );
+  // if job not found throw error
+  if (!job) {
+    throw new NotFoundError(`Cannot find job with id of ${jobId}`);
+  }
+  res.status(StatusCodes.OK).json({ job });
 };
 // Delete job
 const deleteJob = async (req, res) => {
