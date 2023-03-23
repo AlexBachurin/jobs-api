@@ -12,7 +12,16 @@ const getAllJobs = async (req, res) => {
 };
 // Get Single Job
 const getJob = async (req, res) => {
-  res.send("get single job");
+  // get id from params
+  const { id: jobId } = req.params;
+  const { userId } = req.user;
+  // find job by provided id and if its created by user which is currently logged in return job
+  const job = await JobModel.findOne({ _id: jobId, createdBy: userId });
+  // if not found throw error
+  if (!job) {
+    throw new NotFoundError(`Cannot find job with id of ${jobId}`);
+  }
+  res.status(StatusCodes.OK).json({ job });
 };
 // Create Job
 const createJob = async (req, res) => {
